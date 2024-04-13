@@ -67,13 +67,26 @@ func genAPI(api *spec.ApiSpec, caller string) (string, error) {
 	var builder strings.Builder
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			handler := route.Handler
-			if len(handler) == 0 {
-				return "", fmt.Errorf("missing handler annotation for route %q", route.Path)
+			// handler := route.Handler
+			// if len(handler) == 0 {
+			// 	return "", fmt.Errorf("missing handler annotation for route %q", route.Path)
+			// }
+
+			// handler = util.Untitle(handler)
+			// handler = strings.Replace(handler, "Handler", "", 1)
+
+			fmt.Printf("method: %s, route:%+v\n\n", route.Method, route.Path)
+			paths := strings.Split(strings.Replace(route.Path, ":", "", -1), "/")
+			paths[0] = route.Method
+
+			handler := ""
+			for _, s := range paths {
+				if len(s) == 0 {
+					continue
+				}
+				handler += strings.ToUpper(s[:1]) + s[1:]
 			}
 
-			handler = util.Untitle(handler)
-			handler = strings.Replace(handler, "Handler", "", 1)
 			comment := commentForRoute(route)
 			if len(comment) > 0 {
 				fmt.Fprintf(&builder, "%s\n", comment)

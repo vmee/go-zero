@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -17,6 +18,22 @@ const (
 	headerTagKey = "header"
 )
 
+func IsFormOptional(m spec.Member) bool {
+	if !m.IsFormMember() {
+		return false
+	}
+
+	tag := m.Tags()
+	for _, item := range tag {
+		if item.Key == formTagKey {
+			if stringx.Contains(item.Options, "optional") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	writeIndent(writer, indent)
 	ty, err := genTsType(member)
@@ -24,8 +41,16 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 		return err
 	}
 
+	// if member.Name == "IsSuper" {
+	// 	fmt.Println(member)
+
+	// 	fmt.Println(member.IsOptional())
+	// 	fmt.Println(member.IsFormMember())
+	// 	fmt.Println(IsOptional(member))
+	// }
+
 	optionalTag := ""
-	if member.IsOptional() || member.IsOmitEmpty() {
+	if IsFormOptional(member) || member.IsOptional() || member.IsOmitEmpty() {
 		optionalTag = "?"
 	}
 	name, err := member.GetPropertyName()
